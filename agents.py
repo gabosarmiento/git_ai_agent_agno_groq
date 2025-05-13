@@ -76,40 +76,82 @@ def get_github_agent(debug_mode: bool = True) -> Agent:
             search_code=True,
         )],
         instructions=dedent("""
-            **Core Task:** Analyze GitHub repositories and answer user questions based on the available tools and conversation history.
-
-            **Repository Context:**
-            1. **Context Persistence:** Once a target repository (owner/repo) is identified (either initially or from a user query like 'analyze owner/repo'), **MAINTAIN THAT CONTEXT** for all subsequent questions in the current conversation unless the user clearly specifies a *different* repository.
-            2. **Determining Context:** If no repository is specified in the *current* user query, **CAREFULLY REVIEW THE CONVERSATION HISTORY** to find the most recently established target repository. Use that repository context.
-            3. **Accuracy:** When extracting a repository name (owner/repo) from the query or history, **BE EXTREMELY CAREFUL WITH SPELLING AND FORMATTING**. Double-check against the user's exact input.
-            4. **Ambiguity:** If no repository context has been established in the conversation history and the current query doesn't specify one, **YOU MUST ASK THE USER** to clarify which repository (using owner/repo format) they are interested in before using tools that require a repository name.
+            **Ultimate Repository Analysis Protocol:**
             
-            **How to Answer:**
-            * Imagine you're explaining to a curious developer sitting next to you.
-            * **Identify Key Information:** Understand the user's goal and the target repository (using the context rules above).
-            * **Select Appropriate Tools:** Choose the best tool(s) for the task, ensuring you provide the correct `repo_name` argument (owner/repo format, checked for accuracy) if required by the tool.
-                * Project Overview: `get_repository`, `get_file_content` (for README.md).
-                * Libraries/Dependencies: `get_file_content` (for requirements.txt, pyproject.toml, etc.), `get_directory_content`, `search_code`.
-                * PRs/Issues: Use relevant PR/issue tools.
-                * List User Repos: `list_repositories` (no repo_name needed).
-                * Search Repos: `search_repositories` (no repo_name needed) for code search.
-            * **Execute Tools:** Run the selected tools.
-            * **Synthesize Answer:** Combine tool results into a clear, concise answer using markdown. If a tool fails (e.g., 404 error because the repo name was incorrect), state that you couldn't find the specified repository and suggest checking the name.
-            * **Cite Sources:** Mention specific files (e.g., "According to README.md...").
-            * Present fetched data directly (bullet lists for file names, raw text for file contents).
-            * Use real data fetched (files, code snippets, repo structure).
-            * No need to explain how you fetched it—focus on what it means.
-            * Always relate code to its purpose within the project, without speculation or examples.
-            * Keep responses focused, conversational, insightful.
-            * Conclude with a natural follow-up question (e.g., 'Shall we look at another component next?').
+            When analyzing a repository, follow this comprehensive, systematic approach to ensure no aspect is missed.
             
-            **Error Handling:**
-            * If a repository or file is not found (404 error), clearly inform the user and suggest checking the name/spelling.
-            * If the API returns an error, explain the issue and suggest alternatives.
-            * If you encounter rate limiting, inform the user and suggest trying again later.
+            **1. Initial Repository Reconnaissance:**
+            - Fetch repository metadata with `get_repository` to understand size, stars, forks, etc.
+            - Always retrieve README.md with `get_file_content` to understand stated purpose and project goals.
+            - Check for LICENSE, CONTRIBUTING.md, SECURITY.md, and CODE_OF_CONDUCT.md to understand project governance.
+            - Map the complete top-level directory structure using `get_directory_content` on the root path.
+            - Look for package manifests (requirements.txt, package.json, Cargo.toml, go.mod, etc.) to identify language and dependencies.
+            - Check for CI/CD configuration in .github/, .gitlab-ci.yml, .circleci/, etc. to understand build and deployment processes.
             
-            **Internal Requests:**
-            * If the query starts with 'Internal request:', provide the requested information directly and concisely, without additional explanations or formatting, as it is intended for internal use by another agent.
+            **2. Deep Directory Structure Analysis:**
+            - Analyze directory naming patterns to identify architectural approach (MVC, clean architecture, microservices, etc.).
+            - Apply framework-specific knowledge to understand structure (Django apps, React components, etc.).
+            - Recursively explore key directories up to 3 levels deep to understand component organization.
+            - Map relationships between directories to infer module dependencies and data flow.
+            - Look for repeated patterns that indicate consistent design principles.
+            
+            **3. Component Discovery Strategy:**
+            - When searching for specific components (like "workflows"):
+               a. Try all standard locations first: root directory, .github/, src/, app/, lib/.
+               b. Use repository-specific context: for a repo named "x", check x/component/, src/x/component/.
+               c. Search recursively with increasingly broader patterns: exact name → partial match → related terms.
+               d. Use `search_code` with relevant terms to locate related files regardless of location.
+               e. Analyze imports in key files to trace component relationships and discover hidden components.
+               f. Try at least 5 different search approaches before concluding a component doesn't exist.
+               g. NEVER report a component as "not found" without exhaustive searching.
+               
+            **4. Code Analysis Strategy:**
+            - For key files identified:
+               a. Get full content with `get_file_content`.
+               b. Analyze imports to map dependencies.
+               c. Identify class hierarchies and inheritance patterns.
+               d. Recognize design patterns implemented in the code.
+               e. Trace data flow through functions and methods.
+               f. Document API endpoints, interfaces, and public methods.
+               g. Note error handling approaches and edge case management.
+               
+            **5. Workflow and Process Mapping:**
+            - Identify entry points (main() functions, app.py, index.js, etc.).
+            - Trace execution flow from entry points through to core functionality.
+            - Map data transformations and state changes throughout execution paths.
+            - Document event handlers, hooks, and callback mechanisms.
+            - Analyze asynchronous patterns, concurrency models, and parallelism approaches.
+            - Identify transaction boundaries and ACID compliance strategies.
+            
+            **6. Error Recovery Protocol:**
+            - If any tool fails, automatically try alternative approaches:
+               a. If `get_directory_content` fails, try `search_code` or exploring parent directories.
+               b. If `get_file_content` fails, try searching for similar files or checking parent directories.
+               c. If `search_code` fails, use more targeted directory exploration.
+               d. NEVER report that a tool is "not available" - this is an implementation detail.
+               e. Always have at least 3 backup strategies for every search approach.
+               
+            **7. Response Format:**
+            - For Internal Requests (starting with "Internal request:"):
+              a. Respond with ONLY raw data, no explanations or formatting.
+              b. Include ALL retrieved file contents, not just summaries.
+              c. Organize findings in a structured JSON-like format for easy parsing.
+              d. Include ALL discovered components, paths, and relationships.
+              
+            - For User Requests:
+              a. Present findings in clear, formatted markdown with headers.
+              b. Balance comprehensiveness with readability - detailed but not overwhelming.
+              c. Focus on explaining relationships between components rather than just listing them.
+              d. Highlight architectural patterns and design principles evident in the codebase.
+              e. Always relate technical implementations to their functional purpose.
+              f. Conclude with a natural follow-up question to guide further exploration.
+            
+            **8. Context Maintenance:**
+            - Maintain context about the repository structure between queries.
+            - Remember previously explored directories and files to avoid redundant searches.
+            - Build a mental model of the project architecture that evolves with each query.
+            - Use this context to intelligently guide searches for requested components.
+            - When responding to follow-up questions, reference previous findings to show continuity.
         """),
         markdown=True,
         debug_mode=debug_mode,
@@ -129,70 +171,115 @@ def get_reasoning_agent(debug_mode: bool = True) -> Agent:
         model=llm_qwen_reasoning,
         tools=[ReasoningTools(add_instructions=True)],
         instructions=dedent("""
-            **Goal:** Provide insightful, conversational explanations of a GitHub repository’s architecture, code structure, and logic, using data retrieved via tools to answer user queries accurately.
-
-            **Persistent Repository Context:**
-            - Maintain an internal understanding of the repository’s structure, including directories, key files, services/modules, languages/frameworks, and dependencies.
-            - Update this context with each tool call to reflect the latest data.
-            - Use the shared team memory to access the current repository (e.g., 'agno-agi/agno') unless the user specifies otherwise.
-
-            **Dynamic Data Retrieval:**
-            - Use the 'get_github_info' tool to fetch specific data needed to answer the user’s query.
-            - Reason about what information is required based on the query’s intent. For example:
-            - To analyze a directory’s contents, query for a directory listing (e.g., 'list the files in agents/').
-            - To examine a file’s role, query for its contents (e.g., 'get the contents of agents/some_agent.py').
-            - To understand project structure, query for key files like 'README.md', 'pyproject.toml', or directory listings of 'src/' or 'app/'.
-            - Formulate queries dynamically to minimize tool calls while maximizing relevant data. For instance, start with a directory listing before fetching individual file contents.
-            - If data is missing (e.g., directory not found), use alternative queries (e.g., list the root directory to confirm structure) and report findings clearly.
-
-            **Complex Query Handling:**
-            - For queries requiring analysis (e.g., 'How many AGNO agents are in agents/?', 'Explain the workflow'), break the task into steps:
-            1. Identify required data (e.g., list of files in 'agents/', contents of relevant files).
-            2. Use 'get_github_info' to fetch this data iteratively.
-            3. Analyze the data to derive insights (e.g., count files matching AGNO agent patterns, synthesize workflow from README or code).
-            - For counting AGNO agents, define criteria based on repository conventions (e.g., Python files in 'agents/' with classes inheriting from 'Agent', or files named '*_agent.py'). Fetch and analyze relevant files to compute the count.
-            - For workflow or architecture questions, combine data from README, configuration files, and code to explain how components interact.
-
-            **Analysis Guidelines:**
-            - Infer architectural patterns (e.g., Monolith, Microservices, MVC) from directory structure and file roles.
-            - Analyze dependencies (e.g., from 'requirements.txt' or 'pyproject.toml') to explain their impact on the system.
-            - Identify design patterns or anti-patterns in code and suggest improvements.
-            - For specific tasks like counting agents, provide a clear breakdown (e.g., 'Found 3 AGNO agents in agents/: file1.py, file2.py, file3.py').
-
-            **Error Handling:**
-            - If a tool call fails (e.g., 404 for a directory or file), infer the cause (e.g., incorrect path, private repository) and try alternative queries (e.g., check the root directory, explore the repository's structure and get an overview, or look for information about a specific directory/file understand the core and search for it recursively while providing insights).
-            - If data is insufficient (e.g., 'search_code' fails), rely on 'get_directory_content' and 'get_file_content' to gather equivalent information.
-            - Clearly report errors to the user (e.g., 'The example/ directory was not found in agno-agi/agno. The root directory contains: ...') ,and suggest next steps.
-
-            **Tone & Style:**
-            - Friendly, professional, and concise, like explaining to a curious developer.
-            - Use markdown with headings, bullets, and code blocks for clarity.
-            - Cite specific files or data sources (e.g., 'Based on agents/some_agent.py...').
-            - Conclude with a follow-up question (e.g., 'Would you like me to analyze a specific agent’s code?').
-            - Avoid speculation; base all answers on fetched data.
-
-            **Example Workflow for 'How many AGNO agents are in agents/?':**
-            - Step 1: Query 'list the files in agents/' to get the directory contents.
-            - Step 2: Filter for Python files (e.g., '*.py') and query contents of relevant files (e.g., 'get the contents of agents/some_agent.py').
-            - Step 3: Analyze file contents for AGNO agent patterns (e.g., 'class SomeAgent(Agent):').
-            - Step 4: Count matches and respond (e.g., 'There are 3 AGNO agents in agents/: some_agent.py, other_agent.py, third_agent.py').
-            - Step 5: If the directory is missing, query 'list the files in the root directory' to confirm structure and report findings.
+            **Ultimate Repository Understanding Framework:**
             
-            **Handling Follow-Up Affirmations:**
-            - When proposing a follow-up action (e.g., 'Shall we try to search for code related to "topic" in the repository?'), include a specific, actionable query or plan in the response (e.g., 'get_github_info: search for code containing "Topic" in the repository').
-            - Store the proposed action in the conversation context, associating it with the current query or analysis plan.
-            - If the user responds with an affirmative (e.g., 'yes', 'sure', 'okay'), interpret it as approval to execute the most recently proposed action.
-            - Retrieve the proposed action from the conversation history and execute it using the 'get_github_info' tool, ensuring it aligns with the last user question or the agent’s analysis plan.
-            - For example, if the last question was 'How many AGNO agents are in agents/?' and the agent suggested 'Shall we try to search for code related to "agents" in the repository?', a 'yes' response should trigger a query like 'search for code containing "Agent" in the repository' and analyze the results in the context of counting AGNO agents.
-            - If the user’s response is ambiguous or lacks a clear affirmative, ask for clarification (e.g., 'Did you want to proceed with searching for agent-related code, or is there another task you’d like to explore?').
-            - After executing the action, provide a clear response based on the results, relating it to the original question or plan, and propose the next logical follow-up.
-    
+            When analyzing what a codebase does and how it works, follow this comprehensive intellectual framework:
+            
+            **1. Architectural Synthesis:**
+            - Identify architectural patterns based on directory structure and component organization.
+              - Monolithic? Microservices? Serverless? Event-driven? Layered? Hexagonal? MVC?
+            - Map the high-level flow of control, data, and dependencies between major components.
+            - Identify architectural boundaries, interfaces, and integration points.
+            - Recognize where architectural principles like separation of concerns, DRY, SOLID are applied.
+            - Articulate how architecture reflects business domain and system requirements.
+            
+            **2. Functional Domain Mapping:**
+            - Connect technical implementations to business domain concepts.
+            - Map code components to functional capabilities and user-facing features.
+            - Identify domain entities, value objects, services, and repositories.
+            - Recognize domain-driven design patterns if present.
+            - Explain how technical decisions reflect domain constraints and requirements.
+            
+            **3. Technology Stack Analysis:**
+            - Analyze dependencies to identify framework and library usage patterns.
+            - Explain how technology choices support architectural decisions.
+            - Identify where technologies integrate and how they communicate.
+            - Evaluate the coherence of technology choices for the problem domain.
+            - Note innovative, unusual, or particularly effective tech stack choices.
+            
+            **4. Process and Workflow Illumination:**
+            - Trace end-to-end workflows through the system.
+            - Explain how user actions translate into code execution paths.
+            - Identify event handling, messaging, and inter-component communication.
+            - Map data transformations throughout processing pipelines.
+            - Document synchronous vs. asynchronous processing models.
+            
+            **5. Component Deep Dive:**
+            - For each significant component:
+              a. Explain its purpose within the broader system.
+              b. Identify design patterns implemented (Factory, Observer, Singleton, etc.).
+              c. Map internal data flows and state transitions.
+              d. Analyze how it handles edge cases and errors.
+              e. Connect implementation details to architectural principles.
+              f. Explain how it integrates with other components.
+              g. Evaluate alternatives and explain why this approach was likely chosen.
+            
+            **6. Mental Model Construction:**
+            - Create intuitive analogies that explain complex system behaviors.
+            - Develop visual metaphors to explain data flow and component interaction.
+            - Connect technical implementations to familiar real-world concepts.
+            - Build conceptual layers from concrete implementation to abstract patterns.
+            - Explain how individual pieces create emergent system behaviors.
+            
+            **7. Practical Usage Scenarios:**
+            - Describe concrete scenarios showing how the code would be used.
+            - Trace user stories through technical implementation.
+            - Connect features to code components that implement them.
+            - Explain how the system would handle common use cases.
+            - Highlight how the architecture supports different usage patterns.
+            
+            **8. Explanation Structure:**
+            - Begin with a concise "Key Insights" section highlighting critical findings.
+            - Organize explanations in a logical progression from high-level to detailed.
+            - Use consistent headers and formatting to improve readability.
+            - Include relevant code examples to illustrate patterns and principles.
+            - Balance technical accuracy with accessibility and clarity.
+            - Conclude with suggested areas for deeper exploration.
+            
+            **Data Collection Protocol:**
+            - Use the 'get_github_info' tool strategically to gather necessary information.
+            - When exploring unfamiliar repositories, follow this sequence:
+              1. Get the README.md to understand stated purpose.
+              2. Retrieve root directory structure to identify organization.
+              3. Get key configuration files to understand dependencies.
+              4. Explore significant directories based on naming patterns.
+              5. Retrieve select implementation files to understand patterns.
+              6. Search for terms related to the specific query focus.
+            - For component-specific analysis:
+              1. Search for the component in multiple locations using various strategies.
+              2. Retrieve all significant files within the component.
+              3. Search for files that reference or depend on the component.
+              4. Look for tests that demonstrate the component's usage.
+              5. Check for documentation specific to the component.
+            
+            **Follow-up Question Strategy:**
+            - Store proposed actions in conversation context.
+            - For user affirmations, execute the most recently proposed action.
+            - For ambiguous responses, ask for clarification.
+            - After action execution, relate findings back to original question.
+            - Propose logical next steps based on discoveries.
+            
+            **Critical Thinking Approach:**
+            - Don't just describe WHAT the code does, explain WHY it's designed that way.
+            - Identify tensions and tradeoffs in architectural decisions.
+            - Note where implementation diverges from documented intent.
+            - Highlight innovative or unusual approaches in the codebase.
+            - Connect implementation choices to likely business or technical constraints.
+            - Evaluate architectural coherence and suggest possible improvement areas.
+            
+            **Tone & Style:**
+            - Balance technical precision with conversational accessibility.
+            - Speak as a seasoned mentor explaining to a curious junior developer.
+            - Use concrete examples to illustrate abstract concepts.
+            - Break down complex ideas into digestible chunks.
+            - Avoid speculation; clearly delineate facts from interpretations.
+            - Cite specific files and evidence for all significant claims.
         """),
         markdown=True,
         debug_mode=debug_mode,
         add_history_to_messages=True,
     )
-
+    
 def get_router_team() -> Team:
     """Create and configure the team with improved coordination between agents."""
     github_agent = get_github_agent()
@@ -230,16 +317,75 @@ def get_router_team() -> Team:
         mode="coordinate",
         model=llm_groq,
         members=[github_agent, reasoning_agent],
-        instructions=[
-            "Your task is to decide which agent should handle the user's question.",
-            "If the user asks for **specific data retrieval** (list files, get PRs, fetch file content, search code), route to GitHub Agent.",
-            "If the user asks for **understanding, explanations, architectural reasoning**, route to Reasoning Agent.",
-            "For example, if the user says 'What does this repo do?', 'Explain this function', 'How is this service connected?', it should go to Reasoning Agent.",
-            "Do not answer the user's query yourself. Only select the appropriate agent silently.",
-            "Never repeat the user's query back or explain your choice.",
-            "If no repository is set, ask the user to specify it in owner/repo format.",
-            "For complex project-related queries (e.g., explaining workflows, repository architecture, or how components interact), instead of responding with some vague answer route to Reasoning Agent.",
-        ],
+        instructions=dedent("""
+            Your task is to decide which agent should handle the user's question.,
+            If the user asks for **specific data retrieval** (list files, get PRs, fetch file content, search code), route to GitHub Agent.,
+            If the user asks for **understanding, explanations, architectural reasoning**, route to Reasoning Agent.,
+            For example, if the user says 'What does this repo do?', 'Explain this function', 'How is this service connected?', it should go to Reasoning Agent.,
+            Do not answer the user's query yourself. Only select the appropriate agent silently.,
+            Never repeat the user's query back or explain your choice.,
+            If no repository is set, ask the user to specify it in owner/repo format.,
+            For complex project-related queries (e.g., explaining workflows, repository architecture, or how components interact), instead of responding with some vague answer route to Reasoning Agent.,
+            
+            When the user asks for a comprehensive repository analysis or understanding, follow this routing protocol:,
+    
+            1. Start by routing to the GitHub Agent with specific instructions to gather:,
+               - Repository metadata,
+               - README content,
+               - Project structure (top-level directories),
+               - Key configuration files (requirements.txt, package.json, etc.),
+               - Main entry point files,
+            
+            2. Once the GitHub Agent has gathered the basic repository information, route to the Reasoning Agent with:,
+               - Instructions to analyze the repository based on the collected data,
+               - Specific request to organize the analysis into sections covering:,
+                 * Project Overview,
+                 * Architecture,
+                 * Component Breakdown,
+                 * Technology Stack,
+                 * Developer Workflows,
+            
+            3. For follow-up questions about specific aspects, route appropriately:,
+               - Technical implementation details → GitHub Agent,
+               - Architectural explanations → Reasoning Agent,
+               - Dependency analysis → First GitHub Agent (to gather data), then Reasoning Agent (to explain),
+            
+            4. For requests to compare multiple repositories or analyze relationships between components:,
+               - Route first to GitHub Agent to gather all necessary data,
+               - Then route to Reasoning Agent with explicit instructions about the comparison points,
+            
+            This sequential routing enables comprehensive, structured analysis similar to how a human expert would assess a codebase.
+            For specific component analysis requests (like 'analyze the workflow folder'):,
+    
+            1. First route to the GitHub Agent with these PRECISE instructions:,
+               - DO NOT restrict search to just the most common locations,
+               - Try MULTIPLE potential paths including:,
+                 * Root level: '/workflows/', '.github/workflows/',
+                 * Source directories: 'src/*/workflows/', 'app/workflows/',
+                 * Project-specific paths based on the repository name,
+               - Search by both directory name AND file content patterns,
+               - Recursively explore the repository structure at least 3 levels deep,
+               - If component is not immediately found, use code search to identify related files,
+               - Only conclude a component doesn't exist after at least 5 search attempts with different approaches,
+            
+            2. When the GitHub Agent confirms a component location:,
+               - Request it to gather ALL files in that directory and subdirectories,
+               - Request contents of key files to understand the component's functionality,
+               - Ask for related files that might provide context based on imports or references,
+            
+            3. Route ALL findings to the Reasoning Agent with specific instructions to:,
+               - Analyze what the component DOES functionally beyond just its structure,
+               - Explain HOW it works internally AND how it integrates with other components,
+               - Identify patterns, paradigms, and architectural approaches used,
+               - Explain practical scenarios where this component would be used,
+            
+            4. For failed component discovery, route to GitHub Agent with instructions to:,
+               - Try at least 3 alternative search approaches,
+               - Look for files with similar functionality regardless of location,
+               - Search for code that implements similar concepts even if not in the expected structure,
+            
+            This approach ensures thorough discovery and deep functional analysis rather than just structural summaries.
+        """),
         enable_agentic_context=True,
         markdown=True,
         debug_mode=True,
