@@ -49,18 +49,26 @@ GROQ_API_KEY=your_groq_api_key
 ## Installation
 
 1. Clone the repository.
+    ```bash
+    git clone https://github.com/gabosarmiento/gitreader.git
+    cd gitreader
+    ```
 2. Create and activate a virtual environment:
+    ```bash
+    python -m venv .venv
+    source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+    ```
 
-```bash
-python -m venv .venv
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-```
+3. Install Poetry (if not installed):
+    ```bash
+    curl -sSL https://install.python-poetry.org | python3 -
+    ```
 
-3. Install dependencies:
+4. Create a .env file in the project root:
+    ```env
+    GROQ_API_KEY=your_groq_api_key_here
+    ```
 
-```bash
-pip install -r requirements.txt
-```
 
 ## Project Structure
 
@@ -77,10 +85,10 @@ pip install -r requirements.txt
 ## Running the App
 
 ```bash
-streamlit run app_groq.py
+poetry run streamlit run app_groq.py
 ```
-
-Access via `http://localhost:8501`.
+This will launch the GitReader UI at:
+`http://localhost:8501`.
 
 ## Usage Examples
 

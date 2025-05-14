@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "gitreader"
+version = "0.1.0"
+description = "AI-powered GitHub Repo Analyzer"
+authors = ["Gabriel Sarmiento <gabrielsarmiento@gmail.com>"]
+readme = "README.md"
+package-mode = false
+
+[tool.poetry.dependencies]
+python = ">=3.11,<3.12"
+streamlit = "1.44.1"
+agno = "1.4.2"
+groq = "0.23.1"
+PyGithub = "2.6.1"
+nest_asyncio = "1.6.0"
+python-dotenv = "1.1.0"
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
