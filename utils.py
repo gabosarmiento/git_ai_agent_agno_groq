@@ -55,12 +55,16 @@ def sidebar_widget() -> None:
         if st.button("📋 Summarize 'agno-agi/agno'"):
             # Run this query in the current session
             add_message("user", "Summarize 'agno-agi/agno' repo")
-        if st.button("🥇 List my recent repositories"):
-            add_message("user", "List my recent repositories")
-        if st.button("🏆 List latest issues in 'agno-agi/agno' "):
-            add_message("user", "List latest issues in 'agno-agi/agno'")
-        if st.button("🥇 List recent PRs in 'agno-agi/agno'"):
-            add_message("user", "List recent PRs in 'agno-agi/agno' repo")
+        if st.button("📊 Analyze 'pytorch/pytorch' repository structure"):
+            add_message("user", "Analyze 'pytorch/pytorch' repository structure")
+        if st.button("🔍 Search for 'machine learning' related code in 'tensorflow/tensorflow'"):
+            add_message("user", "Search for 'machine learning' related code in 'tensorflow/tensorflow'")
+        if st.button("📝 Summarize recent PRs in 'facebook/react'"):
+            add_message("user", "Summarize recent PRs in 'facebook/react'")
+        if st.button("🛠️ List CI/CD workflows in 'kubernetes/kubernetes'"):
+            add_message("user", "List CI/CD workflows in 'kubernetes/kubernetes'")
+        if st.button("📈 Analyze commit history of 'torvalds/linux'"):
+            add_message("user", "Analyze commit history of 'torvalds/linux'")
         # Chat controls
         st.header("Chat")
         if st.button("🆕 New Chat"):
@@ -146,34 +150,43 @@ def restart_agent():
 
 
 # Keep only necessary CSS styles
+# utils.py
 CUSTOM_CSS = """
 <style>
     .main-header {
-        font-size: 2.5rem;
-        margin-bottom: 1rem;
+        font-size: 2.8rem;
+        margin-bottom: 1.2rem;
         color: #0366d6;
         font-weight: 600;
     }
     .sub-header {
-        font-size: 1.5rem;
-        margin-top: 1rem;
-        margin-bottom: 0.5rem;
+        font-size: 1.8rem;
+        margin-top: 1.2rem;
+        margin-bottom: 0.8rem;
         color: #2f363d;
         font-weight: 500;
     }
     .metric-card {
         background-color: #f6f8fa;
-        border-radius: 8px;
-        padding: 1.2rem;
-        margin-bottom: 1rem;
-        border-left: 5px solid #0366d6;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        border-left: 8px solid #0366d6;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
     .pr-card {
         background-color: #f1f8ff;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        border-left: 8px solid #6f42c1;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .response-container {
+        padding: 1rem;
+        background-color: #f9f9f9;
         border-radius: 8px;
-        padding: 1.2rem;
-        margin-bottom: 1.2rem;
-        border-left: 5px solid #6f42c1;
+        margin-bottom: 1rem;
     }
 </style>
 """

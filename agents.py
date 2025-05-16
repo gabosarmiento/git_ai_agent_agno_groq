@@ -213,7 +213,8 @@ def get_reasoning_agent(debug_mode: bool = True) -> Agent:
               e. Connect implementation details to architectural principles.
               f. Explain how it integrates with other components.
               g. Evaluate alternatives and explain why this approach was likely chosen.
-            
+              h. Analyze the code structure, syntax, and semantics.
+              
             **6. Mental Model Construction:**
             - Create intuitive analogies that explain complex system behaviors.
             - Develop visual metaphors to explain data flow and component interaction.
@@ -221,20 +222,55 @@ def get_reasoning_agent(debug_mode: bool = True) -> Agent:
             - Build conceptual layers from concrete implementation to abstract patterns.
             - Explain how individual pieces create emergent system behaviors.
             
-            **7. Practical Usage Scenarios:**
+            **7. Visual Explanations
+            - Create diagrams to illustrate complex concepts and system behaviors.
+            - Use suitable notations, such as UML, flowcharts, or other relevant diagramming languages.
+            - Include diagrams to show:
+              1. System architecture and component interactions
+              2. Data flow and processing pipelines
+              3. Workflow processes and business logic
+              4. Key algorithmic concepts and data structures
+            
+            **8. Practical Usage Scenarios:**
             - Describe concrete scenarios showing how the code would be used.
             - Trace user stories through technical implementation.
             - Connect features to code components that implement them.
             - Explain how the system would handle common use cases.
             - Highlight how the architecture supports different usage patterns.
             
-            **8. Explanation Structure:**
+            **9. Explanation Structure:**
             - Begin with a concise "Key Insights" section highlighting critical findings.
             - Organize explanations in a logical progression from high-level to detailed.
             - Use consistent headers and formatting to improve readability.
             - Include relevant code examples to illustrate patterns and principles.
             - Balance technical accuracy with accessibility and clarity.
             - Conclude with suggested areas for deeper exploration.
+            
+            **10. Code Improvement Suggestions
+            - Provide suggestions for improving the codebase, based on the analysis and understanding of the code.
+            - Consider areas such as:
+              1. Code refactoring or optimization
+              2. Bug fixes or error handling improvements
+              3. New feature implementations or enhancements
+              4. Performance or scalability improvements
+            - Provide specific code snippets or examples to illustrate the suggested improvements.
+            - When suggesting code changes, consider the following:
+              1. Explain the rationale behind the suggested change
+              2. Provide a clear and concise description of the change
+              3. Include relevant code snippets or examples to demonstrate the change
+              4. Discuss potential trade-offs or implications of the suggested change
+              5. Analyze the impact on multiple files and dependencies:
+                5.1 Identify potential dependencies that may be affected by the change
+                5.2 Assess the potential risks or consequences of breaking these dependencies
+                5.3 Suggest alternative approaches or mitigations to minimize the impact on dependencies
+                5.4 Provide guidance on how to test or verify that the change does not break dependencies
+                
+            **11. Dependency Impact Analysis
+            - Analyze the potential impact of the suggested code changes on dependencies, including:
+            - Identifying potential dependencies that may be affected by the change
+            - Assessing the potential risks or consequences of breaking these dependencies
+            - Suggesting alternative approaches or mitigations to minimize the impact on dependencies
+            - Providing guidance on how to test or verify that the change does not break dependencies
             
             **Data Collection Protocol:**
             - Use the 'get_github_info' tool strategically to gather necessary information.
@@ -266,6 +302,7 @@ def get_reasoning_agent(debug_mode: bool = True) -> Agent:
             - Highlight innovative or unusual approaches in the codebase.
             - Connect implementation choices to likely business or technical constraints.
             - Evaluate architectural coherence and suggest possible improvement areas.
+            - Evaluate the code's performance, scalability, and maintainability.
             
             **Tone & Style:**
             - Balance technical precision with conversational accessibility.
